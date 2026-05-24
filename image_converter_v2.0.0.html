@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Converter Pro</title>
+    <style>
+        :root {
+            --bg: #f0f2f5;
+            --card-bg: #ffffff;
+            --text: #1a1a2e;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --accent: #4f6ef7;
+            --accent-hover: #3b54e0;
+            --accent-light: #eef1ff;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.06);
+            --radius-sm: 8px;
+            --radius: 12px;
+            --radius-lg: 16px;
+            --transition: 0.2s ease;
+            --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --checker-light: #e8e8e8;
+            --checker-dark: #d4d4d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 16px;
+            line-height: 1.5;
+            -webkit-tap-highlight-color: transparent;
+            background-image: radial-gradient(ellipse at 20% 20%, #e8ecff 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, #f0e6ff 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, #f0f2f5 0%, #e2e6ed 100%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 8px 0;
+        }
+        .header .logo {
+            font-size: 2rem;
+            margin-bottom: 2px;
+        }
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--text);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .header .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+        .badge {
+            display: inline-block;
+            background: var(--accent-light);
+            color: var(--accent);
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        /* Card */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: box-shadow var(--transition);
+        }
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+        .card-header {
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-header .icon {
+            font-size: 1.2rem;
+        }
+
+        /* Upload Zone */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-lg);
+            padding: 36px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            background: #fafbfc;
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .upload-zone.drag-over {
+            border-color: var(--accent);
+            background: var(--accent-light);
+            transform: scale(1.01);
+            box-shadow: 0 0 0 8px rgba(79, 110, 247, 0.08);
+        }
+        .upload-zone.has-image {
+            border-style: solid;
+            border-color: var(--success);
+            background: #f9fdfb;
+            padding: 20px 24px;
+            min-height: auto;
+        }
+        .upload-zone .upload-icon {
+            font-size: 3rem;
+            transition: transform var(--transition);
+        }
+        .upload-zone.drag-over .upload-icon {
+            transform: translateY(-4px);
+        }
+        .upload-zone .upload-text {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text);
+        }
+        .upload-zone .upload-hint {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .upload-zone input[type="file"] {
+            display: none;
+        }
+        .file-info-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            font-size: 0.85rem;
+            color: var(--text);
+        }
+        .file-info-row .filename {
+            font-weight: 600;
+            word-break: break-all;
+        }
+        .file-info-row .file-meta {
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+        }
+        .btn-remove {
+            background: #fee2e2;
+            color: var(--danger);
+            border: none;
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 600;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+        .btn-remove:hover {
+            background: #fecaca;
+            transform: scale(1.03);
+        }
+
+        /* Preview Section */
+        .preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .preview-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+        }
+        .preview-card .preview-label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 10px 16px;
+            background: #f9fafb;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .preview-card .preview-label .format-tag {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+        }
+        .format-tag.original {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        .format-tag.converted {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+        .preview-card .preview-body {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
+            max-height: 400px;
+            position: relative;
+            background-image:
+                linear-gradient(45deg, var(--checker-light) 25%, transparent 25%),
+                linear-gradient(-45deg, var(--checker-light) 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, var(--checker-light) 75%),
+                linear-gradient(-45deg, transparent 75%, var(--checker-light) 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            background-color: #fdfdfd;
+            padding: 12px;
+        }
+        .preview-card .preview-body img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 4px;
+            transition: opacity 0.3s ease;
+        }
+        .preview-card .preview-body .placeholder {
+            color: #c5c9d2;
+            font-size: 0.85rem;
+            text-align: center;
+            font-weight: 500;
+        }
+        .preview-card .preview-body .placeholder .ph-icon {
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .preview-size {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            padding: 6px 16px 10px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            background: #fdfdfd;
+            min-height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .size-reduction {
+            color: var(--success);
+            font-weight: 600;
+        }
+        .size-increase {
+            color: var(--warning);
+            font-weight: 600;
+        }
+
+        /* Settings */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .setting-group label {
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: var(--text);
+            letter-spacing: 0.02em;
+        }
+        .setting-group select,
+        .setting-group input[type="number"] {
+            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            font-family: var(--font);
+            background: #fafbfc;
+            transition: all var(--transition);
+            color: var(--text);
+            width: 100%;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .setting-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+        .setting-group select:focus,
+        .setting-group input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.1);
+            background: #fff;
+        }
+        .quality-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .quality-slider-container input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e7eb;
+            outline: none;
+            cursor: pointer;
+        }
+        .quality-slider-container input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.15s ease;
+        }
+        .quality-slider-container input[type="range"]::-webkit-slider-thumb:active {
+            transform: scale(1.2);
+        }
+        .quality-value {
+            font-weight: 700;
+            font-size: 0.9rem;
+            min-width: 36px;
+            text-align: center;
+            color: var(--accent);
+        }
+        .resize-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .resize-row input {
+            flex: 1;
+            min-width: 60px;
+        }
+        .resize-row .lock-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            background: #fafbfc;
+            cursor: pointer;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition);
+            flex-shrink: 0;
+            color: var(--text-secondary);
+        }
+        .lock-btn.locked {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .lock-btn:hover {
+            border-color: var(--accent);
+            background: #f8f9ff;
+        }
+        .preset-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .preset-btn {
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1.5px solid var(--border);
+            background: #fafbfc;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 500;
+            transition: all var(--transition);
+            white-space: nowrap;
+            font-family: var(--font);
+            color: var(--text);
+        }
+        .preset-btn:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .preset-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        /* Download Button */
+        .btn-download {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 16px 24px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.02em;
+            transition: all var(--transition);
+            box-shadow: 0 4px 15px rgba(79, 110, 247, 0.35);
+            font-family: var(--font);
+        }
+        .btn-download:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 110, 247, 0.4);
+        }
+        .btn-download:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(79, 110, 247, 0.3);
+        }
+        .btn-download:disabled {
+            background: #c5c9d2;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        .btn-download .dl-icon {
+            font-size: 1.3rem;
+        }
+        .btn-download .dl-info {
+            font-size: 0.75rem;
+            font-weight: 400;
+            opacity: 0.85;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1a1a2e;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 1000;
+            transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+            pointer-events: none;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+            white-space: nowrap;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.success {
+            background: #059669;
+        }
+        .toast.error {
+            background: #dc2626;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .preview-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .settings-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .card {
+                padding: 14px;
+                border-radius: var(--radius);
+            }
+            .upload-zone {
+                padding: 24px 16px;
+                min-height: 110px;
+            }
+            .upload-zone .upload-icon {
+                font-size: 2.2rem;
+            }
+            .header h1 {
+                font-size: 1.4rem;
+            }
+            .preview-card .preview-body {
+                min-height: 150px;
+                max-height: 280px;
+            }
+            .btn-download {
+                padding: 14px 18px;
+                font-size: 0.95rem;
+            }
+            .resize-row {
+                flex-wrap: wrap;
+            }
+            .preset-buttons {
+                gap: 4px;
+            }
+            .preset-btn {
+                padding: 5px 10px;
+                font-size: 0.7rem;
+            }
+        }
+        @media (max-width: 400px) {
+            body {
+                padding: 8px;
+            }
+            .container {
+                gap: 10px;
+            }
+            .card {
+                padding: 10px;
+                border-radius: var(--radius-sm);
+            }
+            .upload-zone {
+                padding: 18px 12px;
+                min-height: 90px;
+            }
+            .upload-zone .upload-icon {
+                font-size: 1.8rem;
+            }
+            .upload-zone .upload-text {
+                font-size: 0.85rem;
+            }
+            .header h1 {
+                font-size: 1.2rem;
+            }
+            .preview-card .preview-body {
+                min-height: 120px;
+                max-height: 220px;
+            }
+            .quality-slider-container input[type="range"]::-webkit-slider-thumb {
+                width: 28px;
+                height: 28px;
+            }
+            .btn-download {
+                padding: 12px 14px;
+                font-size: 0.88rem;
+                border-radius: var(--radius-sm);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <span class="logo">🖼️</span>
+            <h1>Image Converter Pro</h1>
+            <p class="subtitle">Convert, resize & compress images — entirely in your browser</p>
+            <span class="badge">🔒 Privacy First • No Upload</span>
+        </div>
+
+        <!-- Upload Card -->
+        <div class="card" id="uploadCard">
+            <div class="card-header"><span class="icon">📤</span> Upload Image</div>
+            <div class="upload-zone" id="uploadZone">
+                <span class="upload-icon">📁</span>
+                <span class="upload-text">Drop your image here</span>
+                <span class="upload-hint">or tap to browse • JPEG, PNG, WebP, GIF, BMP, SVG</span>
+                <input type="file" id="fileInput" accept="image/*">
+            </div>
+            <div id="fileInfo" style="display:none; margin-top:10px;"></div>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="preview-grid" id="previewGrid">
+            <!-- Original Preview -->
+            <div class="preview-card" id="originalCard">
+                <div class="preview-label">
+                    <span>📷 Original</span>
+                    <span class="format-tag original" id="originalFormatTag">—</span>
+                </div>
+                <div class="preview-body" id="originalPreviewBody">
+                    <span class="placeholder"><span class="ph-icon">🖼️</span>No image yet</span>
+                </div>
+                <div class="preview-size" id="originalSizeInfo">—</div>
+            </div>
+            <!-- Converted Preview -->
+            <div class="preview-card" id="convertedCard">
+                <div class="preview-label">
+                    <span>✨ Converted Preview</span>
+                    <span class="format-tag converted" id="convertedFormatTag">—</span>
+                </div>
+                <div class="preview-body" id="convertedPreviewBody">
+                    <span class="placeholder"><span class="ph-icon">🔄</span>Upload an image to see preview</span>
+                </div>
+                <div class="preview-size" id="convertedSizeInfo">—</div>
+            </div>
+        </div>
+
+        <!-- Settings Card -->
+        <div class="card" id="settingsCard">
+            <div class="card-header"><span class="icon">⚙️</span> Conversion Settings</div>
+            <div class="settings-grid">
+                <!-- Format -->
+                <div class="setting-group">
+                    <label for="formatSelect">Output Format</label>
+                    <select id="formatSelect">
+                        <option value="image/jpeg">JPEG — Best for photos</option>
+                        <option value="image/png">PNG — Lossless, supports transparency</option>
+                        <option value="image/webp">WebP — Modern, smaller files</option>
+                    </select>
+                </div>
+                <!-- Quality -->
+                <div class="setting-group" id="qualityGroup">
+                    <label for="qualitySlider">Quality: <span id="qualityLabel">92%</span></label>
+                    <div class="quality-slider-container">
+                        <input type="range" id="qualitySlider" min="5" max="100" value="92" step="1">
+                        <span class="quality-value" id="qualityValue">92</span>
+                    </div>
+                </div>
+                <!-- Width -->
+                <div class="setting-group">
+                    <label>Resize Dimensions (px)</label>
+                    <div class="resize-row">
+                        <input type="number" id="widthInput" placeholder="Width" min="1" max="16384" step="1">
+                        <button class="lock-btn locked" id="lockBtn" title="Toggle Aspect Ratio Lock">🔒</button>
+                        <input type="number" id="heightInput" placeholder="Height" min="1" max="16384" step="1">
+                    </div>
+                </div>
+                <!-- Presets -->
+                <div class="setting-group">
+                    <label>Quick Resize</label>
+                    <div class="preset-buttons" id="presetButtons">
+                        <button class="preset-btn active" data-preset="original">Original</button>
+                        <button class="preset-btn" data-preset="50">50%</button>
+                        <button class="preset-btn" data-preset="25">25%</button>
+                        <button class="preset-btn" data-preset="1920">1920px</button>
+                        <button class="preset-btn" data-preset="1280">1280px</button>
+                        <button class="preset-btn" data-preset="800">800px</button>
+                        <button class="preset-btn" data-preset="400">400px</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Download Button -->
+        <button class="btn-download" id="downloadBtn" disabled>
+            <span class="dl-icon">⬇️</span>
+            <span>Upload an Image to Convert</span>
+            <span class="dl-info" id="downloadInfo"></span>
+        </button>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        (function() {
+            // ─────────────────────────────────────
+            // DOM Elements
+            // ─────────────────────────────────────
+            const uploadZone = document.getElementById('uploadZone');
+            const fileInput = document.getElementById('fileInput');
+            const fileInfo = document.getElementById('fileInfo');
+            const originalPreviewBody = document.getElementById('originalPreviewBody');
+            const convertedPreviewBody = document.getElementById('convertedPreviewBody');
+            const originalFormatTag = document.getElementById('originalFormatTag');
+            const convertedFormatTag = document.getElementById('convertedFormatTag');
+            const originalSizeInfo = document.getElementById('originalSizeInfo');
+            const convertedSizeInfo = document.getElementById('convertedSizeInfo');
+            const formatSelect = document.getElementById('formatSelect');
+            const qualitySlider = document.getElementById('qualitySlider');
+            const qualityLabel = document.getElementById('qualityLabel');
+            const qualityValue = document.getElementById('qualityValue');
+            const qualityGroup = document.getElementById('qualityGroup');
+            const widthInput = document.getElementById('widthInput');
+            const heightInput = document.getElementById('heightInput');
+            const lockBtn = document.getElementById('lockBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const downloadInfo = document.getElementById('downloadInfo');
+            const toast = document.getElementById('toast');
+            const presetButtons = document.querySelectorAll('.preset-btn');
+
+            // ─────────────────────────────────────
+            // State
+            // ─────────────────────────────────────
+            const state = {
+                originalImage: null, // HTMLImageElement
+                originalFile: null, // File object
+                originalWidth: 0,
+                originalHeight: 0,
+                originalAspectRatio: 1,
+                originalSizeBytes: 0,
+                originalFormat: '',
+                format: 'image/jpeg',
+                quality: 92,
+                outputWidth: 0,
+                outputHeight: 0,
+                aspectLocked: true,
+                convertedBlob: null,
+                convertedSizeBytes: 0,
+                activePreset: 'original',
+            };
+
+            // Canvas for conversion (reused)
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Object URL for original preview
+            let originalObjectURL = null;
+
+            // Debounce timer
+            let debounceTimer = null;
+            const DEBOUNCE_MS = 250;
+
+            // ─────────────────────────────────────
+            // Toast
+            // ─────────────────────────────────────
+            let toastTimeout;
+
+            function showToast(message, type = '') {
+                clearTimeout(toastTimeout);
+                toast.textContent = message;
+                toast.className = 'toast ' + type + ' show';
+                toastTimeout = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2200);
+            }
+
+            // ─────────────────────────────────────
+            // Utility: Format bytes
+            // ─────────────────────────────────────
+            function formatBytes(bytes) {
+                if (bytes === 0) return '0 B';
+                const k = 1024;
+                const sizes = ['B', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                const val = (bytes / Math.pow(k, i)).toFixed(i === 0 ? 0 : 1);
+                return val + ' ' + sizes[i];
+            }
+
+            // ─────────────────────────────────────
+            // Utility: Get file extension from MIME
+            // ─────────────────────────────────────
+            function getExtension(mimeType) {
+                const map = {
+                    'image/jpeg': 'jpg',
+                    'image/png': 'png',
+                    'image/webp': 'webp',
+                };
+                return map[mimeType] || 'img';
+            }
+
+            function getFormatName(mimeType) {
+                const map = {
+                    'image/jpeg': 'JPEG',
+                    'image/png': 'PNG',
+                    'image/webp': 'WebP',
+                };
+                return map[mimeType] || mimeType;
+            }
+
+            function getOriginalFormatName(file) {
+                if (!file) return '—';
+                const ext = file.name.split('.').pop().toUpperCase();
+                const mimeMap = {
+                    'image/jpeg': 'JPEG',
+                    'image/png': 'PNG',
+                    'image/webp': 'WebP',
+                    'image/gif': 'GIF',
+                    'image/bmp': 'BMP',
+                    'image/svg+xml': 'SVG',
+                };
+                return mimeMap[file.type] || ext || 'Unknown';
+            }
+
+            // ─────────────────────────────────────
+            // Update UI based on format selection
+            // ─────────────────────────────────────
+            function updateQualityVisibility() {
+                if (state.format === 'image/png') {
+                    qualityGroup.style.opacity = '0.4';
+                    qualityGroup.style.pointerEvents = 'none';
+                    qualitySlider.value = 100;
+                    qualityValue.textContent = '—';
+                    qualityLabel.textContent = 'N/A (Lossless)';
+                } else {
+                    qualityGroup.style.opacity = '1';
+                    qualityGroup.style.pointerEvents = 'auto';
+                    qualitySlider.value = state.quality;
+                    qualityValue.textContent = state.quality;
+                    qualityLabel.textContent = state.quality + '%';
+                }
+            }
+
+            // ─────────────────────────────────────
+            // Perform conversion & update previews
+            // ─────────────────────────────────────
+            function performConversion() {
+                if (!state.originalImage || !state.originalFile) return;
+
+                const img = state.originalImage;
+                const outW = state.outputWidth || state.originalWidth;
+                const outH = state.outputHeight || state.originalHeight;
+
+                // Clamp dimensions
+                const clampedW = Math.max(1, Math.min(16384, Math.round(outW)));
+                const clampedH = Math.max(1, Math.min(16384, Math.round(outH)));
+
+                // Update inputs if clamped
+                if (clampedW !== state.outputWidth) widthInput.value = clampedW;
+                if (clampedH !== state.outputHeight) heightInput.value = clampedH;
+                state.outputWidth = clampedW;
+                state.outputHeight = clampedH;
+
+                // Set canvas size
+                canvas.width = clampedW;
+                canvas.height = clampedH;
+
+                // Clear and optionally fill background for JPEG (no alpha)
+                ctx.clearRect(0, 0, clampedW, clampedH);
+                if (state.format === 'image/jpeg') {
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, clampedW, clampedH);
+                }
+
+                // Draw image
+                ctx.drawImage(img, 0, 0, clampedW, clampedH);
+
+                // Get preview data URL
+                const quality = state.format === 'image/png' ? undefined : state.quality / 100;
+                const dataURL = canvas.toDataURL(state.format, quality);
+
+                // Update converted preview
+                updateConvertedPreview(dataURL);
+
+                // Get blob for size & download
+                if (canvas.toBlob) {
+                    canvas.toBlob(
+                        (blob) => {
+                            if (blob) {
+                                state.convertedBlob = blob;
+                                state.convertedSizeBytes = blob.size;
+                                updateConvertedSizeInfo();
+                                updateDownloadButton();
+                            }
+                        },
+                        state.format,
+                        quality
+                    );
+                } else {
+                    // Fallback: estimate from data URL
+                    const estimatedSize = Math.round((dataURL.length - 22) * 0.75);
+                    state.convertedSizeBytes = estimatedSize;
+                    state.convertedBlob = null;
+                    updateConvertedSizeInfo();
+                    updateDownloadButton();
+                }
+
+                // Update format tag
+                convertedFormatTag.textContent = getFormatName(state.format);
+            }
+
+            function updateConvertedPreview(dataURL) {
+                convertedPreviewBody.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = dataURL;
+                img.alt = 'Converted Preview';
+                img.style.opacity = '0';
+                img.onload = () => {
+                    img.style.opacity = '1';
+                };
+                convertedPreviewBody.appendChild(img);
+            }
+
+            function updateConvertedSizeInfo() {
+                const sizeStr = formatBytes(state.convertedSizeBytes);
+                const dims = `${state.outputWidth || state.originalWidth} × ${state.outputHeight || state.originalHeight}`;
+                let comparisonHTML = '';
+                if (state.originalSizeBytes > 0 && state.convertedSizeBytes > 0) {
+                    const diff = state.convertedSizeBytes - state.originalSizeBytes;
+                    const pct = state.originalSizeBytes > 0 ? Math.round((diff / state.originalSizeBytes) * 100) : 0;
+                    if (diff < 0) {
+                        comparisonHTML =
+                            ` <span class="size-reduction">(${Math.abs(pct)}% smaller ▼)</span>`;
+                    } else if (diff > 0) {
+                        comparisonHTML =
+                        ` <span class="size-increase">(${pct}% larger ▲)</span>`;
+                    } else {
+                        comparisonHTML = ' (same size)';
+                    }
+                }
+                convertedSizeInfo.innerHTML = `${sizeStr} • ${dims}${comparisonHTML}`;
+            }
+
+            function updateDownloadButton() {
+                if (!state.originalFile || !state.convertedBlob && !state.convertedSizeBytes) {
+                    downloadBtn.disabled = true;
+                    downloadBtn.querySelector('span:first-of-type').textContent = '⬇️';
+                    downloadBtn.childNodes[1].textContent = 'Upload an Image to Convert';
+                    downloadInfo.textContent = '';
+                    return;
+                }
+                downloadBtn.disabled = false;
+                const ext = getExtension(state.format);
+                const sizeStr = formatBytes(state.convertedSizeBytes);
+                downloadBtn.querySelector('span:first-of-type').textContent = '⬇️';
+                downloadBtn.childNodes[1].textContent = `Download ${ext.toUpperCase()}`;
+                downloadInfo.textContent = `~${sizeStr}`;
+            }
+
+            // ─────────────────────────────────────
+            // Debounced settings change handler
+            // ─────────────────────────────────────
+            function onSettingsChanged() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => {
+                    performConversion();
+                }, DEBOUNCE_MS);
+            }
+
+            function onSettingsChangedImmediate() {
+                clearTimeout(debounceTimer);
+                performConversion();
+            }
+
+            // ─────────────────────────────────────
+            // Update resize inputs from state
+            // ─────────────────────────────────────
+            function syncResizeInputs() {
+                widthInput.value = state.outputWidth || state.originalWidth || '';
+                heightInput.value = state.outputHeight || state.originalHeight || '';
+            }
+
+            function applyPreset(preset) {
+                if (!state.originalImage) return;
+                state.activePreset = preset;
+                presetButtons.forEach(b => b.classList.remove('active'));
+                const activeBtn = document.querySelector(`.preset-btn[data-preset="${preset}"]`);
+                if (activeBtn) activeBtn.classList.add('active');
+
+                const ow = state.originalWidth;
+                const oh = state.originalHeight;
+                const ar = state.originalAspectRatio;
+
+                switch (preset) {
+                    case 'original':
+                        state.outputWidth = ow;
+                        state.outputHeight = oh;
+                        break;
+                    case '50':
+                        state.outputWidth = Math.round(ow * 0.5);
+                        state.outputHeight = Math.round(oh * 0.5);
+                        break;
+                    case '25':
+                        state.outputWidth = Math.round(ow * 0.25);
+                        state.outputHeight = Math.round(oh * 0.25);
+                        break;
+                    case '1920':
+                        if (ow >= oh) {
+                            state.outputWidth = 1920;
+                            state.outputHeight = Math.round(1920 / ar);
+                        } else {
+                            state.outputHeight = 1920;
+                            state.outputWidth = Math.round(1920 * ar);
+                        }
+                        break;
+                    case '1280':
+                        if (ow >= oh) {
+                            state.outputWidth = 1280;
+                            state.outputHeight = Math.round(1280 / ar);
+                        } else {
+                            state.outputHeight = 1280;
+                            state.outputWidth = Math.round(1280 * ar);
+                        }
+                        break;
+                    case '800':
+                        if (ow >= oh) {
+                            state.outputWidth = 800;
+                            state.outputHeight = Math.round(800 / ar);
+                        } else {
+                            state.outputHeight = 800;
+                            state.outputWidth = Math.round(800 * ar);
+                        }
+                        break;
+                    case '400':
+                        if (ow >= oh) {
+                            state.outputWidth = 400;
+                            state.outputHeight = Math.round(400 / ar);
+                        } else {
+                            state.outputHeight = 400;
+                            state.outputWidth = Math.round(400 * ar);
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                // Clamp
+                state.outputWidth = Math.max(1, Math.min(16384, Math.round(state.outputWidth)));
+                state.outputHeight = Math.max(1, Math.min(16384, Math.round(state.outputHeight)));
+                syncResizeInputs();
+                onSettingsChangedImmediate();
+            }
+
+            // ─────────────────────────────────────
+            // Handle image upload
+            // ─────────────────────────────────────
+            function handleFile(file) {
+                if (!file || !file.type.startsWith('image/')) {
+                    showToast('⚠️ Please select a valid image file.', 'error');
+                    return;
+                }
+
+                // Revoke previous object URL
+                if (originalObjectURL) {
+                    URL.revokeObjectURL(originalObjectURL);
+                    originalObjectURL = null;
+                }
+
+                state.originalFile = file;
+                state.originalSizeBytes = file.size;
+                state.originalFormat = file.type;
+                state.activePreset = 'original';
+                state.aspectLocked = true;
+                state.format = formatSelect.value;
+                state.quality = parseInt(qualitySlider.value);
+
+                // Update lock button
+                lockBtn.classList.add('locked');
+                lockBtn.textContent = '🔒';
+
+                // Update preset buttons
+                presetButtons.forEach(b => b.classList.remove('active'));
+                const origBtn = document.querySelector('.preset-btn[data-preset="original"]');
+                if (origBtn) origBtn.classList.add('active');
+
+                // Read file
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        state.originalImage = img;
+                        state.originalWidth = img.naturalWidth;
+                        state.originalHeight = img.naturalHeight;
+                        state.originalAspectRatio = img.naturalWidth / img.naturalHeight;
+                        state.outputWidth = img.naturalWidth;
+                        state.outputHeight = img.naturalHeight;
+                        state.convertedBlob = null;
+                        state.convertedSizeBytes = 0;
+
+                        // Update original preview
+                        originalObjectURL = URL.createObjectURL(file);
+                        originalPreviewBody.innerHTML = '';
+                        const previewImg = document.createElement('img');
+                        previewImg.src = originalObjectURL;
+                        previewImg.alt = 'Original Image';
+                        previewImg.style.opacity = '0';
+                        previewImg.onload = () => { previewImg.style.opacity = '1'; };
+                        originalPreviewBody.appendChild(previewImg);
+
+                        // Update original info
+                        originalFormatTag.textContent = getOriginalFormatName(file);
+                        originalSizeInfo.innerHTML =
+                            `${formatBytes(file.size)} • ${img.naturalWidth} × ${img.naturalHeight}`;
+
+                        // Update UI
+                        syncResizeInputs();
+                        updateQualityVisibility();
+                        updateDownloadButton();
+                        performConversion();
+
+                        // Update upload zone
+                        uploadZone.classList.add('has-image');
+                        updateFileInfoDisplay();
+                    };
+                    img.onerror = function() {
+                        showToast('❌ Failed to load image. It may be corrupted.', 'error');
+                    };
+                    img.src = e.target.result;
+                };
+                reader.onerror = function() {
+                    showToast('❌ Failed to read file.', 'error');
+                };
+                reader.readAsDataURL(file);
+            }
+
+            function updateFileInfoDisplay() {
+                const file = state.originalFile;
+                if (!file) {
+                    fileInfo.style.display = 'none';
+                    uploadZone.classList.remove('has-image');
+                    return;
+                }
+                fileInfo.style.display = 'block';
+                fileInfo.innerHTML = `
+                    <div class="file-info-row">
+                        <span class="filename">📄 ${file.name}</span>
+                        <span class="file-meta">${formatBytes(file.size)}</span>
+                        <span class="file-meta">${getOriginalFormatName(file)}</span>
+                        <span class="file-meta">${state.originalWidth}×${state.originalHeight}</span>
+                        <button class="btn-remove" id="removeBtn">✕ Remove</button>
+                    </div>
+                `;
+                document.getElementById('removeBtn').addEventListener('click', resetAll);
+            }
+
+            function resetAll() {
+                if (originalObjectURL) {
+                    URL.revokeObjectURL(originalObjectURL);
+                    originalObjectURL = null;
+                }
+                state.originalImage = null;
+                state.originalFile = null;
+                state.originalWidth = 0;
+                state.originalHeight = 0;
+                state.originalAspectRatio = 1;
+                state.originalSizeBytes = 0;
+                state.originalFormat = '';
+                state.outputWidth = 0;
+                state.outputHeight = 0;
+                state.convertedBlob = null;
+                state.convertedSizeBytes = 0;
+                state.activePreset = 'original';
+
+                originalPreviewBody.innerHTML =
+                    '<span class="placeholder"><span class="ph-icon">🖼️</span>No image yet</span>';
+                convertedPreviewBody.innerHTML =
+                    '<span class="placeholder"><span class="ph-icon">🔄</span>Upload an image to see preview</span>';
+                originalFormatTag.textContent = '—';
+                convertedFormatTag.textContent = '—';
+                originalSizeInfo.textContent = '—';
+                convertedSizeInfo.textContent = '—';
+                widthInput.value = '';
+                heightInput.value = '';
+                fileInfo.style.display = 'none';
+                uploadZone.classList.remove('has-image');
+                downloadBtn.disabled = true;
+                downloadBtn.querySelector('span:first-of-type').textContent = '⬇️';
+                downloadBtn.childNodes[1].textContent = 'Upload an Image to Convert';
+                downloadInfo.textContent = '';
+                presetButtons.forEach(b => b.classList.remove('active'));
+                const origBtn = document.querySelector('.preset-btn[data-preset="original"]');
+                if (origBtn) origBtn.classList.add('active');
+                lockBtn.classList.add('locked');
+                lockBtn.textContent = '🔒';
+                state.aspectLocked = true;
+                updateQualityVisibility();
+                updateDownloadButton();
+                canvas.width = 0;
+                canvas.height = 0;
+                ctx.clearRect(0, 0, 0, 0);
+            }
+
+            // ─────────────────────────────────────
+            // Download handler
+            // ─────────────────────────────────────
+            function downloadImage() {
+                if (!state.originalFile) {
+                    showToast('⚠️ Please upload an image first.', 'error');
+                    return;
+                }
+                if (!state.convertedBlob && state.convertedSizeBytes === 0) {
+                    // Regenerate
+                    performConversion();
+                    setTimeout(() => downloadImage(), 300);
+                    return;
+                }
+                if (state.convertedBlob) {
+                    triggerDownload(state.convertedBlob);
+                } else {
+                    // Fallback: regenerate via canvas.toBlob
+                    const quality = state.format === 'image/png' ? undefined : state.quality / 100;
+                    canvas.toBlob(
+                        (blob) => {
+                            if (blob) {
+                                state.convertedBlob = blob;
+                                state.convertedSizeBytes = blob.size;
+                                triggerDownload(blob);
+                            } else {
+                                showToast('❌ Conversion failed. Try a different format.', 'error');
+                            }
+                        },
+                        state.format,
+                        quality
+                    );
+                }
+            }
+
+            function triggerDownload(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const originalName = (state.originalFile?.name || 'image').replace(/\.[^.]+$/, '');
+                const ext = getExtension(state.format);
+                a.download = `${originalName}_converted.${ext}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('✅ Image downloaded successfully!', 'success');
+            }
+
+            // ─────────────────────────────────────
+            // Event Listeners
+            // ─────────────────────────────────────
+
+            // Upload zone click
+            uploadZone.addEventListener('click', (e) => {
+                if (e.target.id === 'removeBtn') return;
+                fileInput.click();
+            });
+
+            // File input change
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    handleFile(e.target.files[0]);
+                }
+                fileInput.value = '';
+            });
+
+            // Drag & Drop
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadZone.classList.add('drag-over');
+            });
+            uploadZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadZone.classList.remove('drag-over');
+            });
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                uploadZone.classList.remove('drag-over');
+                const files = e.dataTransfer?.files;
+                if (files && files[0]) {
+                    handleFile(files[0]);
+                }
+            });
+
+            // Touch events for mobile drag (prevent default to allow drop)
+            uploadZone.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+            }, { passive: false });
+
+            // Format select
+            formatSelect.addEventListener('change', () => {
+                state.format = formatSelect.value;
+                updateQualityVisibility();
+                onSettingsChangedImmediate();
+            });
+
+            // Quality slider
+            qualitySlider.addEventListener('input', () => {
+                state.quality = parseInt(qualitySlider.value);
+                qualityValue.textContent = state.quality;
+                qualityLabel.textContent = state.quality + '%';
+                onSettingsChanged();
+            });
+
+            // Width input
+            widthInput.addEventListener('input', () => {
+                const val = parseInt(widthInput.value);
+                if (isNaN(val) || val < 1) return;
+                state.outputWidth = Math.min(16384, val);
+                if (state.aspectLocked && state.originalAspectRatio > 0) {
+                    state.outputHeight = Math.round(state.outputWidth / state.originalAspectRatio);
+                    state.outputHeight = Math.max(1, Math.min(16384, state.outputHeight));
+                    heightInput.value = state.outputHeight;
+                }
+                state.activePreset = 'custom';
+                presetButtons.forEach(b => b.classList.remove('active'));
+                onSettingsChanged();
+            });
+
+            // Height input
+            heightInput.addEventListener('input', () => {
+                const val = parseInt(heightInput.value);
+                if (isNaN(val) || val < 1) return;
+                state.outputHeight = Math.min(16384, val);
+                if (state.aspectLocked && state.originalAspectRatio > 0) {
+                    state.outputWidth = Math.round(state.outputHeight * state.originalAspectRatio);
+                    state.outputWidth = Math.max(1, Math.min(16384, state.outputWidth));
+                    widthInput.value = state.outputWidth;
+                }
+                state.activePreset = 'custom';
+                presetButtons.forEach(b => b.classList.remove('active'));
+                onSettingsChanged();
+            });
+
+            // Lock button
+            lockBtn.addEventListener('click', () => {
+                state.aspectLocked = !state.aspectLocked;
+                if (state.aspectLocked) {
+                    lockBtn.classList.add('locked');
+                    lockBtn.textContent = '🔒';
+                    // Recalculate height based on current width
+                    if (state.outputWidth > 0 && state.originalAspectRatio > 0) {
+                        state.outputHeight = Math.round(state.outputWidth / state.originalAspectRatio);
+                        state.outputHeight = Math.max(1, Math.min(16384, state.outputHeight));
+                        heightInput.value = state.outputHeight;
+                        onSettingsChangedImmediate();
+                    }
+                } else {
+                    lockBtn.classList.remove('locked');
+                    lockBtn.textContent = '🔓';
+                }
+            });
+
+            // Preset buttons
+            presetButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const preset = btn.dataset.preset;
+                    if (preset) applyPreset(preset);
+                });
+            });
+
+            // Download button
+            downloadBtn.addEventListener('click', downloadImage);
+
+            // Keyboard shortcut for download (Ctrl+D / Cmd+D)
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'd' && state.originalFile) {
+                    e.preventDefault();
+                    downloadImage();
+                }
+            });
+
+            // ─────────────────────────────────────
+            // Initial UI state
+            // ─────────────────────────────────────
+            updateQualityVisibility();
+            updateDownloadButton();
+            syncResizeInputs();
+
+            // ─────────────────────────────────────
+            // Service Worker for PWA-like caching (optional, skipped for simplicity)
+            // ─────────────────────────────────────
+
+            console.log('🖼️ Image Converter Pro ready!');
+            console.log('   Features: Format conversion (JPEG/PNG/WebP), resize, quality control');
+            console.log('   All processing happens locally in your browser.');
+            console.log('   Tip: Press Ctrl+D (Cmd+D on Mac) to quickly download.');
+            console.log('   Supported input formats: JPEG, PNG, WebP, GIF, BMP, SVG, ICO, and more.');
+            console.log('   Output formats: JPEG, PNG, WebP');
+        })();
+    </script>
+</body>
+</html>
